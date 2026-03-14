@@ -1,0 +1,10 @@
+{
+  "name": "xxyy-trade-go",
+  "description": "Trade tokens on Solana/ETH/BSC/Base via XXYY Go SDK — buy, sell, scan tokens, query wallets",
+  "version": "0.1.1",
+  "author": {
+    "name": "QuantProcessing"
+  },
+  "repository": "https://github.com/QuantProcessing/xxyy-api-go",
+  "license": "MIT"
+}

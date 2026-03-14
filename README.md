@@ -8,6 +8,20 @@ Go SDK for the [XXYY](https://www.xxyy.io) Open API — on-chain token trading a
 
 ## Install
 
+### Claude Code Plugin
+
+```
+/plugin install https://github.com/QuantProcessing/xxyy-api-go
+```
+
+Or via marketplace:
+```
+/plugin marketplace add QuantProcessing/xxyy-api-go
+/plugin install xxyy-trade-go@xxyy-api-go
+```
+
+### Go SDK
+
 ```bash
 go get github.com/QuantProcessing/xxyy-api-go
 ```

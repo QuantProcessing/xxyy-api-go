@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "xxyy-api-go",
+  "description": "XXYY trading Go SDK with Claude Code skill support",
+  "owner": {
+    "name": "QuantProcessing"
+  },
+  "plugins": [
+    {
+      "name": "xxyy-trade-go",
+      "description": "Trade tokens on Solana/ETH/BSC/Base via XXYY Go SDK — buy, sell, scan tokens, query wallets",
+      "version": "0.1.1",
+      "author": {
+        "name": "QuantProcessing"
+      },
+      "source": "./",
+      "category": "trading"
+    }
+  ]
+}
