@@ -58,5 +58,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Status: %s (%s)\n", trade.Status, trade.StatusDesc)
+	fmt.Printf("Status: %s (%s)\n", trade.StatusText(), trade.StatusDesc)
 }

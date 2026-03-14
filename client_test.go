@@ -80,10 +80,10 @@ func TestQueryTrade(t *testing.T) {
 	if data.TxID != "test_tx_123" {
 		t.Errorf("TxID = %q, want %q", data.TxID, "test_tx_123")
 	}
-	if data.Status != "success" {
-		t.Errorf("Status = %q, want %q", data.Status, "success")
+	if data.Status != TradeStatusSuccess {
+		t.Errorf("Status = %d, want %d (success)", data.Status, TradeStatusSuccess)
 	}
-	if data.IsBuy == nil || !*data.IsBuy {
+	if !data.IsBuy {
 		t.Error("IsBuy should be true")
 	}
 }

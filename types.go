@@ -1,5 +1,11 @@
 package xxyy
 
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+)
+
 // ApiResponse is the unified response wrapper for all XXYY API responses.
 type ApiResponse[T any] struct {
 	Code    int    `json:"code"`
@@ -47,17 +53,111 @@ type SwapResponse struct {
 // Trade Query
 // ---------------------------------------------------------------------------
 
+// Trade status constants (numeric values from API).
+// Based on live API observation: 1=pending, 2=success, 3=failed.
+const (
+	TradeStatusPending = 1
+	TradeStatusSuccess = 2
+	TradeStatusFailed  = 3
+)
+
+var tradeStatusText = map[int]string{
+	TradeStatusPending: "pending",
+	TradeStatusSuccess: "success",
+	TradeStatusFailed:  "failed",
+}
+
 // TradeData represents the response from querying a trade status.
+// Note: The XXYY API returns status as a number (0=pending, 1=failed, 2=success)
+// and isBuy as a number (0=sell, 1=buy), despite documentation suggesting strings/booleans.
 type TradeData struct {
 	TxID          string  `json:"txId"`
-	Status        string  `json:"status"`         // pending / success / failed
+	Status        int     `json:"-"`               // Parsed from number or string
 	StatusDesc    string  `json:"statusDesc,omitempty"`
 	Chain         string  `json:"chain,omitempty"`
 	TokenAddress  string  `json:"tokenAddress,omitempty"`
 	WalletAddress string  `json:"walletAddress,omitempty"`
-	IsBuy         *bool   `json:"isBuy,omitempty"`
+	IsBuy         bool    `json:"-"`               // Parsed from number or boolean
 	BaseAmount    float64 `json:"baseAmount,omitempty"`
 	QuoteAmount   float64 `json:"quoteAmount,omitempty"`
+	CreateTime    string  `json:"createTime,omitempty"`
+	UpdateTime    string  `json:"updateTime,omitempty"`
+}
+
+// StatusText returns the human-readable status string.
+func (t *TradeData) StatusText() string {
+	if s, ok := tradeStatusText[t.Status]; ok {
+		return s
+	}
+	return fmt.Sprintf("unknown(%d)", t.Status)
+}
+
+// IsSuccess returns true if the trade completed successfully.
+func (t *TradeData) IsSuccess() bool {
+	return t.Status == TradeStatusSuccess
+}
+
+// IsPending returns true if the trade is still pending.
+func (t *TradeData) IsPending() bool {
+	return t.Status == TradeStatusPending
+}
+
+// IsFailed returns true if the trade failed.
+func (t *TradeData) IsFailed() bool {
+	return t.Status == TradeStatusFailed
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling for TradeData.
+// Handles the API returning status as number and isBuy as number (0/1).
+func (t *TradeData) UnmarshalJSON(data []byte) error {
+	type Alias TradeData
+	aux := &struct {
+		*Alias
+		Status json.RawMessage `json:"status"`
+		IsBuy  json.RawMessage `json:"isBuy"`
+	}{Alias: (*Alias)(t)}
+
+	if err := json.Unmarshal(data, aux); err != nil {
+		return err
+	}
+
+	// Parse status: can be number (0/1/2) or string ("pending"/"success"/"failed")
+	if len(aux.Status) > 0 {
+		var statusNum int
+		if err := json.Unmarshal(aux.Status, &statusNum); err == nil {
+			t.Status = statusNum
+		} else {
+			var statusStr string
+			if err := json.Unmarshal(aux.Status, &statusStr); err == nil {
+				switch statusStr {
+				case "pending":
+					t.Status = TradeStatusPending
+				case "failed":
+					t.Status = TradeStatusFailed
+				case "success":
+					t.Status = TradeStatusSuccess
+				default:
+					n, _ := strconv.Atoi(statusStr)
+					t.Status = n
+				}
+			}
+		}
+	}
+
+	// Parse isBuy: can be number (0/1) or boolean (true/false)
+	if len(aux.IsBuy) > 0 {
+		var buyBool bool
+		if err := json.Unmarshal(aux.IsBuy, &buyBool); err == nil {
+			t.IsBuy = buyBool
+		} else {
+			var buyNum int
+			if err := json.Unmarshal(aux.IsBuy, &buyNum); err == nil {
+				t.IsBuy = buyNum == 1
+			}
+		}
+	}
+
+	return nil
 }
 
 // ---------------------------------------------------------------------------
